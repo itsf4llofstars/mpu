@@ -14,17 +14,38 @@
 
 #define BAUD 9600
 
+const int8_t sensPin = A5;
+
+int16_t sensVal = 0;
+int16_t count = 0;
+
 uint32_t ledClk = millis();
-const uint32_t ledPer = 500;
+const uint32_t ledPer = 100;
 
 void setup() {
   Serial.begin(BAUD);
 
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(sensPin, INPUT);
+
+  for (int i = 0; i < 6; ++i) {
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    delay(500);
+  }
+
+  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  delay(500);
+  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 }
 
 void loop() {
-  flashLed(LED_BUILTIN, &ledClk, ledPer);
+  while (count < 1024) {
+    sensVal = analogRead(sensPin);
+    // Serial.println(sensVal);
+    ++count;
+    delay(5);
+  }
 
+  flashLed(LED_BUILTIN, &ledClk, ledPer);
   delay(1); // A-D converter limit delay
 }
