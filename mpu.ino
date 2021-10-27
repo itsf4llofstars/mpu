@@ -3,6 +3,11 @@
  * and save data from the x, y, z axis for a set number os milli-seconds.
  * Data collection will begin after a set number of n-length beeps from the
  * speaker module.
+ * Each A/D converter needs 100us (1ms is OK) between analog readings. A
+ * delay is needed between reading of all analog pins, this delay does not
+ * need to be for each individual pin but can be done as a whole as long as
+ * you can confirm each analog pin will not be read 2 or more times within
+ * 100us.
  */
 #include "blink.h"
 #include "mpu.h"
@@ -20,4 +25,6 @@ void setup() {
 
 void loop() {
   flashLed(LED_BUILTIN, &ledClk, ledPer);
+
+  delay(1); // A-D converter limit delay
 }
