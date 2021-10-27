@@ -4,8 +4,13 @@
  * Data collection will begin after a set number of n-length beeps from the
  * speaker module.
  */
+#include "blink.h"
+#include "mpu.h"
 
 #define BAUD 9600
+
+uint32_t ledClk = millis();
+const uint32_t ledPer = 500;
 
 void setup() {
   Serial.begin(BAUD);
@@ -14,7 +19,5 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  delay(1000);
-  Serial.println(millis());
+  flashLed(LED_BUILTIN, &ledClk, ledPer);
 }
