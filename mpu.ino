@@ -11,6 +11,7 @@
  */
 #include "blink.h"
 #include "mpu.h"
+#include "mpu.h"
 
 #define BAUD 9600
 
@@ -49,3 +50,4 @@ void loop() {
   flashLed(LED_BUILTIN, &ledClk, ledPer);
   delay(1); // A-D converter limit delay
 }
+
