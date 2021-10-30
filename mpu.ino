@@ -11,7 +11,7 @@
  */
 #include "blink.h"
 #include "mpu.h"
-#include "mpu.h"
+#include <Wire.h>
 
 #define PRINT 1
 #if PRINT == 1
@@ -36,34 +36,19 @@ const uint32_t ledPer = 100;
 
 void setup() {
 #if PRINT == 1
-  Serial.begin(BAUD);
+    Serial.begin(BAUD);
 #endif
 
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(sensPin, INPUT);
+    initMpu();
+    setMpuAccelRange();
+    setMpuGyroRange();
+    setfilterBandwidth();
 
-  for (int i = 0; i < 6; ++i) {
-    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    delay(500);
-  }
-
-  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  delay(500);
-  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-
-  bugln("Setup Complete");
+    Serial.println("");
+    delay(100);
 }
 
 void loop() {
-  while (count < 1024) {
-    sensVal = analogRead(sensPin);
-    bugln(sensVal);
-    // Serial.println(sensVal);
-    ++count;
-    delay(5);
-  }
 
-  flashLed(LED_BUILTIN, &ledClk, ledPer);
-  delay(1); // A-D converter limit delay
 }
 
