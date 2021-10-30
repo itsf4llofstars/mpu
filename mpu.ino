@@ -108,9 +108,35 @@ void setup() {
 } // END SETUP
 
 void loop() {
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+
+  Serial.print("Ax ");
+  Serial.print(a.acceleration.x);
+  Serial.print("Ay ");
+  Serial.print(a.acceleration.y);
+  Serial.print("Az ");
+  Serial.println(a.acceleration.z);
+
+  Serial.print("Rx ");
+  Serial.print(g.gyro.x);
+  Serial.print("Ry ");
+  Serial.print(g.gyro.y);
+  Serial.print("Rz ");
+  Serial.println(g.gyro.z);
+
+  Serial.print("T ");
+  Serial.println(temp.temperature);
+
+  Serial.println();
+  delay(500);
+
+  flashLed();
+} // END LOOP
+
+void flashLed() {
   if (millis() - ledClk >= ledPer) {
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     ledClk = millis();
   }
-} // END LOOP
-
+}
