@@ -13,7 +13,18 @@
 #include "mpu.h"
 #include "mpu.h"
 
+#define PRINT 1
+#if PRINT == 1
+#define bug(x) Serial.print(x)
+#define bugln(x) Serial.println(x)
+#else
+#define bug(x)
+#define bugln(x)
+#endif
+
+#if PRINT == 1
 #define BAUD 9600
+#endif
 
 const int8_t sensPin = A5;
 
@@ -24,7 +35,9 @@ uint32_t ledClk = millis();
 const uint32_t ledPer = 100;
 
 void setup() {
+#if PRINT == 1
   Serial.begin(BAUD);
+#endif
 
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(sensPin, INPUT);
@@ -37,11 +50,14 @@ void setup() {
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   delay(500);
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+
+  bugln("Setup Complete");
 }
 
 void loop() {
   while (count < 1024) {
     sensVal = analogRead(sensPin);
+    bugln(sensVal);
     // Serial.println(sensVal);
     ++count;
     delay(5);
