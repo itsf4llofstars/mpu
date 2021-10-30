@@ -1,3 +1,6 @@
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
 /*
  * An Arduino UNO/Nano sketch for the ITG/MPU gyro module. This takes
  * and save data from the x, y, z axis for a set number os milli-seconds.
@@ -9,12 +12,12 @@
  * you can confirm each analog pin will not be read 2 or more times within
  * 100us.
  */
-#include "blink.h"
-#include "mpu.h"
-#include <Wire.h>
+
+Adafruit_MPU6050 mpu;
 
 uint32_t ledClk = millis();
 uint32_t ledPer = 500;
+
 
 void setup() {
   Serial.begin(115200);
@@ -28,6 +31,8 @@ void setup() {
     Serial.println("Failed to find MPU6050.");
   else
     Serial.println("MPU6050 found");
+
+  Serial.println("DEBUG");
 
   // Setup Accelerometer Range
   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
@@ -47,6 +52,8 @@ void setup() {
       break;
   }
 
+  Serial.println("MPU Accelerometer Range set.");
+
   // Setup Gyro Range
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
   Serial.print("Gyro range set to: ");
@@ -64,6 +71,8 @@ void setup() {
       Serial.println("+- 2000 deg/s");
       break;
   }
+
+  Serial.println("MPU Gyro Range set.");
 
   // Setup Filter Bandwidth
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
@@ -92,7 +101,9 @@ void setup() {
       break;
     }
 
-    Serial.println("");
+  Serial.println("MPU Filter Bandwidth set.");
+
+    Serial.println("Setup Complete.");
     delay(100);
 } // END SETUP
 
@@ -101,5 +112,5 @@ void loop() {
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     ledClk = millis();
   }
-}
+} // END LOOP
 
