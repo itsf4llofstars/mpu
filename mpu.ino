@@ -1,6 +1,16 @@
+#include "printMpu.h"
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
+
+#define DEBUG
+#ifdef DEBUG
+#define bug(x) Serial.print(x)
+#define bugln(x) Serial.println(x)
+#else
+#define bug(x)
+#define bugln(x)
+#endif
 /*
  * An Arduino UNO/Nano sketch for the ITG/MPU gyro module. This takes
  * and save data from the x, y, z axis for a set number os milli-seconds.
@@ -15,121 +25,115 @@
 
 Adafruit_MPU6050 mpu;
 
+float accelMax = 0;
+float rotMax = 0;
+
 uint32_t ledClk = millis();
 uint32_t ledPer = 500;
 
 
 void setup() {
   Serial.begin(115200);
+
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Initial Setup print
-  Serial.println("MPU6050 Setup test.");
+  bugln("MPU6050 Setup test.");
 
   // Initialize the MPU6050
   if (!mpu.begin())
-    Serial.println("Failed to find MPU6050.");
+    bugln("Failed to find MPU6050.");
   else
-    Serial.println("MPU6050 found");
-
-  Serial.println("DEBUG");
+    bugln("MPU6050 found");
 
   // Setup Accelerometer Range
   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-  Serial.print("Accelerometer range set to: ");
+  bug("Accelerometer range set to: ");
   switch (mpu.getAccelerometerRange()) {
     case MPU6050_RANGE_2_G:
-      Serial.println("+-2G");
+      bugln("+-2G");
       break;
     case MPU6050_RANGE_4_G:
-      Serial.println("+-4G");
+      bugln("+-4G");
       break;
     case MPU6050_RANGE_8_G:
-      Serial.println("+-8G");
+      bugln("+-8G");
       break;
     case MPU6050_RANGE_16_G:
-      Serial.println("+-16G");
+      bugln("+-16G");
       break;
   }
 
-  Serial.println("MPU Accelerometer Range set.");
+  bugln("MPU Accelerometer Range set.");
 
   // Setup Gyro Range
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  Serial.print("Gyro range set to: ");
+  bug("Gyro range set to: ");
   switch (mpu.getGyroRange()) {
     case MPU6050_RANGE_250_DEG:
-      Serial.println("+- 250 deg/s");
+      bugln("+- 250 deg/s");
       break;
     case MPU6050_RANGE_500_DEG:
-      Serial.println("+- 500 deg/s");
+      bugln("+- 500 deg/s");
       break;
     case MPU6050_RANGE_1000_DEG:
-      Serial.println("+- 1000 deg/s");
+      bugln("+- 1000 deg/s");
       break;
     case MPU6050_RANGE_2000_DEG:
-      Serial.println("+- 2000 deg/s");
+      bugln("+- 2000 deg/s");
       break;
   }
 
-  Serial.println("MPU Gyro Range set.");
+  bugln("MPU Gyro Range set.");
 
   // Setup Filter Bandwidth
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-  Serial.print("Filter bandwidth set to: ");
+  bug("Filter bandwidth set to: ");
   switch (mpu.getFilterBandwidth()) {
     case MPU6050_BAND_260_HZ:
-      Serial.println("260 Hz");
+      bugln("260 Hz");
       break;
     case MPU6050_BAND_184_HZ:
-      Serial.println("184 Hz");
+      bugln("184 Hz");
       break;
     case MPU6050_BAND_94_HZ:
-      Serial.println("94 Hz");
+      bugln("94 Hz");
       break;
     case MPU6050_BAND_44_HZ:
-      Serial.println("44 Hz");
+      bugln("44 Hz");
       break;
     case MPU6050_BAND_21_HZ:
-      Serial.println("21 Hz");
+      bugln("21 Hz");
       break;
     case MPU6050_BAND_10_HZ:
-      Serial.println("10 Hz");
+      bugln("10 Hz");
       break;
     case MPU6050_BAND_5_HZ:
-      Serial.println("5 Hz");
+      bugln("5 Hz");
       break;
     }
 
-  Serial.println("MPU Filter Bandwidth set.");
+  bugln("MPU Filter Bandwidth set.");
 
-    Serial.println("Setup Complete.");
-    delay(100);
+    bugln("Setup Complete.");
+    delay(3000);
 } // END SETUP
 
 void loop() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
-  Serial.print("Ax ");
-  Serial.print(a.acceleration.x);
-  Serial.print("Ay ");
-  Serial.print(a.acceleration.y);
-  Serial.print("Az ");
-  Serial.println(a.acceleration.z);
+  if (a.acceleration.z > accelMax) {
+    accelMax = a.acceleration.z;
+  }
 
-  Serial.print("Rx ");
-  Serial.print(g.gyro.x);
-  Serial.print("Ry ");
-  Serial.print(g.gyro.y);
-  Serial.print("Rz ");
-  Serial.println(g.gyro.z);
+  if (g.gyro.x > rotMax) {
+    rotMax = g.gyro.x;
+  }
 
-  Serial.print("T ");
-  Serial.println(temp.temperature);
+  printAll(a.acceleration.x, a.acceleration.y, a.acceleration.z, g.gyro.x, g.gyro.y, g.gyro.z, temp.temperature);
 
-  Serial.println();
-  delay(500);
+  delay(10);
 
   flashLed();
 } // END LOOP
