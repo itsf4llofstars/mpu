@@ -28,8 +28,16 @@ Adafruit_MPU6050 mpu;
 float accelMax = 0;
 float rotMax = 0;
 
+float aX, aY, aZ;
+float gX, gY, gZ;
+float mpuTemp;
+
 uint32_t ledClk = millis();
+uint32_t mpuClk = millis();
+uint32_t printClk = millis();
 uint32_t ledPer = 500;
+uint32_t mpuPer = 10;
+uint32_t printPer = 50;
 
 
 void setup() {
@@ -120,20 +128,33 @@ void setup() {
 } // END SETUP
 
 void loop() {
-  sensors_event_t a, g, temp;
-  mpu.getEvent(&a, &g, &temp);
+  if (millis() - mpuClk >= mpuPer) {
+    mpuClk = millis();
 
-  if (a.acceleration.z > accelMax) {
-    accelMax = a.acceleration.z;
+    sensors_event_t a, g, temp;
+    mpu.getEvent(&a, &g, &temp);
+
+    aX = a.acceleration.x;
+    aY = a.acceleration.y;
+    aZ = a.acceleration.z;
+
+    gX = g.gyro.x;
+    gY = g.gyro.y;
+    gZ = g.gyro.z;
+
+    mpuTemp = temp.temperature;
   }
 
-  if (g.gyro.x > rotMax) {
-    rotMax = g.gyro.x;
+  if (aZ > accelMax)
+    accelMax = aZ;
+
+  if (gX > rotMax)
+    rotMax = gX;
+
+  if (millis() - printClk >= printPer) {
+    multiplesSingleAxis(aX, 10.0, 100.0);
+    printClk = millis();
   }
-
-  printAll(a.acceleration.x, a.acceleration.y, a.acceleration.z, g.gyro.x, g.gyro.y, g.gyro.z, temp.temperature);
-
-  delay(10);
 
   flashLed();
 } // END LOOP
