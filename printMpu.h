@@ -1,6 +1,8 @@
 #ifndef PRINTMPU_H
 #define PRINTMPU_H
 
+// TODO: Move print average to here
+
 void printAll(float aX, float aY, float aZ, float gX, float gY, float gZ, float temp) {
   Serial.println("\nAccelerations:");
   Serial.print("Accel X: ");

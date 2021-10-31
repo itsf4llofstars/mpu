@@ -1,3 +1,5 @@
+#include "blink.h"
+#include "mpuAverage.h"
 #include "printMpu.h"
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
@@ -12,8 +14,8 @@
 #define bugln(x)
 #endif
 /*
- * An Arduino UNO/Nano sketch for the ITG/MPU gyro module. This takes
- * and save data from the x, y, z axis for a set number os milli-seconds.
+ * An Arduino UNO/Nano sketch for the ITG/MPU6050 gyro module. This takes
+ * and save data from the x, y, z axis for a set number of milli-seconds.
  * Data collection will begin after a set number of n-length beeps from the
  * speaker module.
  * Each A/D converter needs 100us (1ms is OK) between analog readings. A
@@ -23,27 +25,48 @@
  * 100us.
  */
 
+// TODO: Change (experiment with) setup parameters
+// TODO: Move print average to printMpu.h file
+// TODO: Re-Write main comment to match this example/test sketch
+
+// Adafruit mpu variable
 Adafruit_MPU6050 mpu;
 
-float accelMax = 0;
-float rotMax = 0;
+#define BAUD 115200
 
+// Average Variables
+const int avgSize = 10;
+float avgArray[avgSize];
+float avgSum = 0;
+float avgAvg = 0;
+int avgIndex = 0;
+bool takeAvg = false;
+
+// Axis Variables
 float aX, aY, aZ;
 float gX, gY, gZ;
 float mpuTemp;
 
+// millis Function Clocks
 uint32_t ledClk = millis();
 uint32_t mpuClk = millis();
 uint32_t printClk = millis();
-uint32_t ledPer = 500;
-uint32_t mpuPer = 10;
-uint32_t printPer = 50;
+uint32_t avgClk = millis();
 
+// millis Function delay times
+uint32_t ledPer = 100;
+uint32_t mpuPer = 10;
+uint32_t printPer = 5;
+uint32_t avgPer = 5;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(BAUD);
 
   pinMode(LED_BUILTIN, OUTPUT);
+
+  // initiate the avgArray with zeros
+  for (int i = 0; i < avgSize; ++i)
+    avgArray[i] = 0;
 
   // Initial Setup print
   bugln("MPU6050 Setup test.");
@@ -72,8 +95,6 @@ void setup() {
       break;
   }
 
-  bugln("MPU Accelerometer Range set.");
-
   // Setup Gyro Range
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
   bug("Gyro range set to: ");
@@ -91,8 +112,6 @@ void setup() {
       bugln("+- 2000 deg/s");
       break;
   }
-
-  bugln("MPU Gyro Range set.");
 
   // Setup Filter Bandwidth
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
@@ -121,8 +140,6 @@ void setup() {
       break;
     }
 
-  bugln("MPU Filter Bandwidth set.");
-
     bugln("Setup Complete.");
     delay(3000);
 } // END SETUP
@@ -143,25 +160,27 @@ void loop() {
     gZ = g.gyro.z;
 
     mpuTemp = temp.temperature;
+
+    takeAvg = true;
   }
 
-  if (aZ > accelMax)
-    accelMax = aZ;
+/*
+  if ((millis() - avgClk >= avgPer) && (takeAvg)) {
+    float multiplier = 1.0;
 
-  if (gX > rotMax)
-    rotMax = gX;
+    avgAvg = takeAverage(aZ, avgArray, avgSize, &avgSum, &avgIndex, multiplier);
+    printAxisAverage(aZ, avgAvg, false);
+    takeAvg = false;
 
-  if (millis() - printClk >= printPer) {
-    multiplesSingleAxis(aX, 10.0, 100.0);
+    avgClk = millis();
+  }
+*/
+
+  if ((millis() - printClk >= printPer) && (takeAvg)) {
+    printAll(aX, aY, aZ, gX, gY, gZ, mpuTemp);
     printClk = millis();
   }
 
-  flashLed();
+  flashLed(LED_BUILTIN, &ledClk, ledPer);
 } // END LOOP
 
-void flashLed() {
-  if (millis() - ledClk >= ledPer) {
-    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    ledClk = millis();
-  }
-}
