@@ -8,11 +8,15 @@
  */
 
 #define BAUD 115200
-
-uint8_t led = 13;
+#define PER 500
 
 Adafruit_MPU6050 mpu;
 sensors_event_t a, g, temp;
+
+byte led = 13;
+bool printAccel = false;
+
+unsigned long int ledClk = millis();
 
 void setup() {
   Serial.begin(BAUD);
@@ -21,13 +25,15 @@ void setup() {
   digitalWrite(led, HIGH);
 
   if (mpu.begin()) {
-    mpu.setAccelerometerRange(MPU6050_RANGE_8_G); // 2, 4, 8, 16 G's
-    mpu.setGyroRange(MPU6050_RANGE_500_DEG);      // 250, 500, 1000, 2000 rads/s
-    mpu.setFilterBandwidth(MPU6050_BAND_10_HZ);   // 5, 10, 21, 44, 94, 184, 260
+    mpu.setAccelerometerRange(MPU6050_RANGE_8_G); // 2, 4, 8*, 16* G's
+    mpu.setGyroRange(MPU6050_RANGE_2000_DEG);      // 250, 500, 1000, 2000 rads/s
+    mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);    // 5*, 10*, 21, 44, 94, 184, 260
   }
   else {
-    digitalWrie(led, !digitalRead(led));
-    delay(50);
+    do {
+      digitalWrite(led, !digitalRead(led));
+      delay(50);
+    } while (true);
   }
 
   delay(1000);
@@ -37,7 +43,23 @@ void setup() {
 void loop() {
   mpu.getEvent(&a, &g, &temp);
 
-  Serial.print(a.acceleration.x);
-  Serial.print(a.acceleration.y);
-  Serial.println(a.acceleration.z);
+  if (printAccel) {
+    Serial.print(a.acceleration.x);
+    Serial.print(" ");
+    Serial.print(a.acceleration.y);
+    Serial.print(" ");
+    Serial.println(a.acceleration.z);
+  }
+  else if (!printAccel) {
+    Serial.print(g.gyro.x);
+    Serial.print(" ");
+    Serial.print(g.gyro.y);
+    Serial.print(" ");
+    Serial.println(g.gyro.z);
+  }
+
+  if (millis() - ledClk >= PER) {
+    digitalWrite(led, !digitalRead(led));
+    ledClk = millis();
+  }
 }
